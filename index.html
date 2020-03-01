@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>테스트</title>
+        <script src="./webclient.js"></script>
+        <script>
+            let webclient = null;
+            let timerid = null;
+            function init(){
+                document.querySelector("#running").style.display = "none";
+                document.querySelector("#stopping").style.display = "none";
+                document.querySelector("#error").style.display = "";
+            };
+            function connectToServer()
+            {
+                webclient = new WebClient();
+                webclient.onTick = (sec)=>{
+                    let s = sec % 60;
+                    let m = Math.floor( (sec / 60)%60);
+                    let h = Math.floor( sec / 360);
+                    let text = `${h}시 ${m}분 ${s}초`;
+                    document.querySelector("#time").innerHTML = text;
+                    
+                };
+                webclient.onOutCount = (outCount)=>{
+                    document.querySelector("#outCount").innerHTML = outCount;
+                };
+                webclient.onChangeState = (state)=>{
+                    document.querySelector("#running").style.display = state?"" : "none";
+                    document.querySelector("#stopping").style.display = (!state)?"" : "none";
+                };
+                webclient.onOpen = ()=>{
+                    document.querySelector("#error").style.display = "none";
+                    document.querySelector("#running").style.display = "";
+                    document.querySelector("#stopping").style.display = "";
+                };
+                webclient.onError = ()=>{
+                    document.querySelector("#running").style.display = "none";
+                    document.querySelector("#stopping").style.display = "none";
+                    document.querySelector("#error").style.display = "";
+                    connectToServer();
+                };
+                webclient.onClose = ()=>{
+                    document.querySelector("#running").style.display = "none";
+                    document.querySelector("#stopping").style.display = "none";
+                    document.querySelector("#error").style.display = "";
+                    connectToServer();
+                };
+                webclient.start();
+            }
+            connectToServer();
+        </script>
+        <style>
+            body{
+                margin: 0;
+                padding:0;
+                width:100%;
+                height:100%;
+                font-size: 36pt;
+                font-weight: 900;
+                color:#FFF;
+                background-color: rgba(0, 0, 0, 0.5);
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body onload="init()">
+        <div id="running">
+            <div>
+                <span>말 안 한지 </span><span id="time"></span><span>째</span>
+            </div>
+            <div>
+                <span>1분 이상 말 안 한 지 </span><span id="outCount"></span><span>번</span>
+            </div>
+        </div>
+        <div id="stopping">
+            <div>정지 중입니다</div>
+        </div>
+        <div id="error">
+            <div>연결 중입니다.</div>
+        </div>
+    </body>
+</html>
