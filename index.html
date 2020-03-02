@@ -15,16 +15,25 @@
             function connectToServer()
             {
                 webclient = new WebClient();
-                webclient.onTick = (sec)=>{
-                    let s = sec % 60;
-                    let m = Math.floor( (sec / 60)%60);
-                    let h = Math.floor( sec / 360);
-                    let text = `${h}시 ${m}분 ${s}초`;
+                webclient.onInit = (state, timeout,timeoutCount)=>{
+                    document.querySelector("#running").style.display = state?"" : "none";
+                    document.querySelector("#stopping").style.display = (!state)?"" : "none";
+                    document.querySelector("#timeout").innerHTML = timeout;
+                    document.querySelector("#outCount").innerHTML = timeoutCount;
+                };
+                webclient.onTick = (msec)=>{
+                    let ms = Math.floor((msec % 1000) / 10);
+                    let s = Math.floor( (msec / 1000)%60);
+                    let m = Math.floor( msec / 60000);
+                    let text = `${m}:${s}:${ms}`;
                     document.querySelector("#time").innerHTML = text;
                     
                 };
                 webclient.onOutCount = (outCount)=>{
                     document.querySelector("#outCount").innerHTML = outCount;
+                };
+                webclient.onTimeoutChanged = (timeout)=>{
+                    document.querySelector("#timeout").innerHTML = timeout;
                 };
                 webclient.onChangeState = (state)=>{
                     document.querySelector("#running").style.display = state?"" : "none";
@@ -68,10 +77,10 @@
     <body onload="init()">
         <div id="running">
             <div>
-                <span>말 안 한지 </span><span id="time"></span><span>째</span>
+                <span>말 안 한지 </span><span id="time"></span>
             </div>
             <div>
-                <span>1분 이상 말 안 한 지 </span><span id="outCount"></span><span>번</span>
+                <span id="timeout"></span><span>분 이상 말 안 한 지 </span><span id="outCount"></span><span>번</span>
             </div>
         </div>
         <div id="stopping">

@@ -23,15 +23,21 @@ private:
     bool m_isCountedOutTime = false;
     int m_outCount = 0;
     int m_outTime = 1000 * 60 * 1;//일단 1분
+    QString m_ttsText;
 public:
     explicit Presenter(QObject *parent = nullptr);
     QList<QAudioDeviceInfo> audioDevices();
     bool isRunning(){return m_isRunning;}
     int outCount(){return m_outCount;}
+    int timeout(){return m_outTime;}
+    QString ttsText(){return m_ttsText;}
 protected:
     void setAudioDevice(const QAudioDeviceInfo& device);
 public slots:
     void onChangedThreshold(int value);
+    void setTimeout(int ms);
+    void setTTS(const QString&);
+
     void start();
     void stop();
 protected slots:
@@ -43,6 +49,7 @@ signals:
     void resetTimer();
     void tickTime(int);
     void runningState(bool);
+    void changeTimeout(int);
+    void overTimeout(int);
 };
-
 #endif // PRESENTER_H

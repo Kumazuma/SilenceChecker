@@ -1,4 +1,4 @@
-QT       += core gui multimedia websockets concurrent
+QT       += core gui multimedia websockets concurrent texttospeech
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

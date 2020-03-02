@@ -47,10 +47,10 @@ void Presenter::onAudioInfoUpdate()
         m_elapsedTimer.restart();
         m_isCountedOutTime = false;
     }
-    else if(m_elapsedTimer.elapsed() / m_outTime && !m_isCountedOutTime)
+    else if(m_elapsedTimer.elapsed() >= m_outTime && !m_isCountedOutTime)
     {
         m_isCountedOutTime = true;
-        ++m_outCount;
+        emit overTimeout(++m_outCount);
     }
     emit updateLevel(value);
 }
@@ -72,10 +72,21 @@ void Presenter::onChangedThreshold(int value)
     m_threshold = value;
 }
 
+void Presenter::setTimeout(int ms)
+{
+    m_outTime = ms;
+    emit changeTimeout(m_outTime);
+}
+
+void Presenter::setTTS(const QString& tts)
+{
+    m_ttsText = tts;
+}
+
 void Presenter::onTimeout()
 {
     auto milsec = m_elapsedTimer.elapsed();
-    emit tickTime(milsec / 1000);
+    emit tickTime(milsec);
 }
 
 void Presenter::start()
@@ -84,8 +95,9 @@ void Presenter::start()
         return;
     qDebug()<<"Presenter start!";
     m_isRunning = true;
+    m_outCount = 0;
     m_elapsedTimer.restart();
-    m_timer.start(500);
+    m_timer.start(100);
     setAudioDevice(m_devices[m_selectDevice]);
     emit runningState(m_isRunning);
 }

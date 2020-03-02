@@ -14,6 +14,8 @@ WebSideView::WebSideView(std::shared_ptr<Presenter> presenter, QObject *parent) 
     }
     connect(m_presenter.get(), &Presenter::runningState, this, &WebSideView::onChangeRunningState);
     connect(m_presenter.get(), &Presenter::tickTime,this, &WebSideView::onTick);
+    connect(m_presenter.get(), &Presenter::overTimeout,this, &WebSideView::onOverTimeout);
+    connect(m_presenter.get(), &Presenter::changeTimeout,this, &WebSideView::onChangedTimeout);
 }
 
 WebSideView::~WebSideView()
@@ -33,14 +35,18 @@ void WebSideView::onNewConnection()
     auto* client = m_server.nextPendingConnection();
     connect(client, SIGNAL(textMessageReceived(QString)), this, SLOT(onStringMessage(QString)));
     connect(client, SIGNAL(disconnected()), this, SLOT(onDisconnect()));
+
     auto peerPort=  client->peerPort();
     m_clients.insert(std::pair(peerPort,client));
     QJsonObject obj;
-    obj.insert("type", QJsonValue("runningState"));
+    obj.insert("type", QJsonValue("init"));
     obj.insert("state", QJsonValue(m_presenter->isRunning()));
+    obj.insert("timeout", QJsonValue(m_presenter->timeout()));
+    obj.insert("timeoutCount", QJsonValue(m_presenter->outCount()));
     QJsonDocument document(obj);
     QString jsonText = document.toJson();
     client->sendTextMessage(jsonText);
+
 }
 
 void WebSideView::onDisconnect()
@@ -62,12 +68,11 @@ void WebSideView::onStringMessage(QString)
 
 }
 
-void WebSideView::onTick(int sec)
+void WebSideView::onTick(int ms)
 {
     QJsonObject obj;
     obj.insert("type", QJsonValue("tick"));
-    obj.insert("tick", QJsonValue(sec));
-    obj.insert("outCount", QJsonValue(m_presenter->outCount()));
+    obj.insert("tick", QJsonValue(ms));
     QJsonDocument document(obj);
     QString jsonText = document.toJson();
     for(auto& item: m_clients)
@@ -82,6 +87,34 @@ void WebSideView::onChangeRunningState(bool state)
     QJsonObject obj;
     obj.insert("type", QJsonValue("runningState"));
     obj.insert("state", QJsonValue(state));
+    QJsonDocument document(obj);
+    QString jsonText = document.toJson();
+    for(auto& item: m_clients)
+    {
+        QWebSocket* socket = item.second;
+        socket->sendTextMessage(jsonText);
+    }
+}
+
+void WebSideView::onOverTimeout(int count)
+{
+    QJsonObject obj;
+    obj.insert("type", QJsonValue("timeout"));
+    obj.insert("count", QJsonValue(count));
+    QJsonDocument document(obj);
+    QString jsonText = document.toJson();
+    for(auto& item: m_clients)
+    {
+        QWebSocket* socket = item.second;
+        socket->sendTextMessage(jsonText);
+    }
+}
+
+void WebSideView::onChangedTimeout(int ms)
+{
+    QJsonObject obj;
+    obj.insert("type", QJsonValue("timeoutChanged"));
+    obj.insert("time", QJsonValue(ms));
     QJsonDocument document(obj);
     QString jsonText = document.toJson();
     for(auto& item: m_clients)

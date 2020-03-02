@@ -23,6 +23,8 @@ protected slots:
     void onStringMessage(QString);
     void onTick(int);
     void onChangeRunningState(bool);
+    void onOverTimeout(int count);
+    void onChangedTimeout(int min);
 signals:
 
 };
