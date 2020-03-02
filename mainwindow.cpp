@@ -23,8 +23,17 @@ MainWindow::MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent)
     auto engineList = QTextToSpeech::availableEngines();
     if(engineList.empty())
         return;
+    auto local = QLocale(QLocale::AnyLanguage);
     m_tts.reset( new QTextToSpeech(engineList.first()));
+    m_tts->setLocale(local);
+    auto locales = m_tts->availableLocales();
     auto voices = m_tts->availableVoices();
+    for(auto& locale : locales)
+    {
+        QString text = QString("%1").arg(locale.name());
+        ui->cboLocale->addItem(text);
+    }
+    ui->cboLocale->setCurrentText(QLocale::c().name());
     if(voices.size() == 0)
         return;
     m_tts->setVoice(voices.first());
@@ -37,7 +46,7 @@ MainWindow::MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent)
     }
 
     connect(ui->cboVoice, SIGNAL(currentIndexChanged(int)), this, SLOT(onTTSVoiceIndexChanged(int)));
-
+    connect(ui->cboLocale, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(onCurrentTTSLocaleChanged(const QString&)));
     for (auto &deviceInfo: m_presenter->audioDevices()) {
          QString name = deviceInfo.deviceName();
         ui->comboBox->addItem(name);
@@ -78,6 +87,7 @@ MainWindow::MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent)
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),m_presenter.get(), SLOT(onInputDeviceChanged(int)));
     connect(ui->spinTimeout, SIGNAL(valueChanged(int)), this, SLOT(onSpinTimeoutChanged(int)));
     connect(ui->txtTTSText, SIGNAL(textEdited(const QString&)), m_presenter.get(), SLOT(setTTS(const QString&)));
+
     //connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),m_presenter.get(), SLOT(onInputDeviceChanged(int)));
 
 //    auto sampleRates = defaultDeviceInfo.supportedSampleRates();
@@ -117,6 +127,25 @@ void MainWindow::onSpinTimeoutChanged(int val)
 
 void MainWindow::onTTSVoiceIndexChanged(int index)
 {
+    if(index == -1)
+        return;
     auto voice = m_tts->availableVoices()[index];
     m_tts->setVoice(voice);
+}
+
+void MainWindow::onCurrentTTSLocaleChanged(const QString &name)
+{
+    ui->cboVoice->clear();
+    QLocale locale(name);
+    m_tts->setLocale(locale);
+    auto voices = m_tts->availableVoices();
+    if(voices.size() == 0)
+        return;
+    for(auto& voice : voices)
+    {
+        QString text = QString("%1(%2)").arg(voice.name()).arg(voice.gender());
+        ui->cboVoice->addItem(text);
+    }
+    ui->cboVoice->setCurrentIndex(0);
+    m_tts->setVoice(voices.first());
 }

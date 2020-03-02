@@ -22,5 +22,6 @@ public:
 protected slots:
     void onSpinTimeoutChanged(int val);
     void onTTSVoiceIndexChanged(int index);
+    void onCurrentTTSLocaleChanged(const QString& name);
 };
 #endif // MAINWINDOW_H
