@@ -41,7 +41,7 @@ void WebSideView::onNewConnection()
     QJsonObject obj;
     obj.insert("type", QJsonValue("init"));
     obj.insert("state", QJsonValue(m_presenter->isRunning()));
-    obj.insert("timeout", QJsonValue(m_presenter->timeout()));
+    obj.insert("timeout", QJsonValue(m_presenter->timeout()/(60* 1000)));
     obj.insert("timeoutCount", QJsonValue(m_presenter->outCount()));
     QJsonDocument document(obj);
     QString jsonText = document.toJson();
@@ -114,7 +114,7 @@ void WebSideView::onChangedTimeout(int ms)
 {
     QJsonObject obj;
     obj.insert("type", QJsonValue("timeoutChanged"));
-    obj.insert("time", QJsonValue(ms));
+    obj.insert("time", QJsonValue(ms /(60* 1000)));
     QJsonDocument document(obj);
     QString jsonText = document.toJson();
     for(auto& item: m_clients)

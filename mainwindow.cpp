@@ -112,7 +112,7 @@ void MainWindow::onSpinTimeoutChanged(int val)
 {
     int ms = val * 1000 * 60;
     if(ms != m_presenter->timeout())
-        m_presenter->setTimeout(val);
+        m_presenter->setTimeout(ms);
 }
 
 void MainWindow::onTTSVoiceIndexChanged(int index)
