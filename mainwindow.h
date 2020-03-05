@@ -16,6 +16,7 @@ private:
     Ui::MainWindow *ui;
     std::shared_ptr<Presenter> m_presenter;
     std::unique_ptr<QTextToSpeech> m_tts;
+    bool m_ttsRepeat;
 public:
     MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent = nullptr);
     ~MainWindow();
@@ -23,5 +24,7 @@ protected slots:
     void onSpinTimeoutChanged(int val);
     void onTTSVoiceIndexChanged(int index);
     void onCurrentTTSLocaleChanged(const QString& name);
+    void setTTsRepeat(bool);
+    void onTTSStateChanged(QTextToSpeech::State);
 };
 #endif // MAINWINDOW_H

@@ -31,6 +31,7 @@ public:
     int outCount(){return m_outCount;}
     int timeout(){return m_outTime;}
     QString ttsText(){return m_ttsText;}
+    bool isOverTimeout(){return m_isCountedOutTime;}
 protected:
     void setAudioDevice(const QAudioDeviceInfo& device);
 public slots:

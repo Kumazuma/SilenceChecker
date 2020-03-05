@@ -16,7 +16,8 @@ void addItems(const T& lists, QListWidget* widget)
 MainWindow::MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
-      m_presenter(std::move(presenter))
+      m_presenter(std::move(presenter)),
+      m_ttsRepeat(false)
 
 {
     ui->setupUi(this);
@@ -81,13 +82,13 @@ MainWindow::MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent)
         auto ttsText = m_presenter->ttsText().trimmed();
         if(ttsText.size() == 0)
             return;
-        qDebug()<<ttsText;
         m_tts->say(ttsText);
     });
     connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),m_presenter.get(), SLOT(onInputDeviceChanged(int)));
     connect(ui->spinTimeout, SIGNAL(valueChanged(int)), this, SLOT(onSpinTimeoutChanged(int)));
     connect(ui->txtTTSText, SIGNAL(textEdited(const QString&)), m_presenter.get(), SLOT(setTTS(const QString&)));
-
+    connect(ui->chkRepeat, SIGNAL(clicked(bool)), this,SLOT(setTTsRepeat(bool)));
+    connect(m_tts.get(), SIGNAL(stateChanged(QTextToSpeech::State)), this, SLOT(onTTSStateChanged(QTextToSpeech::State)));
     //connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),m_presenter.get(), SLOT(onInputDeviceChanged(int)));
 
 //    auto sampleRates = defaultDeviceInfo.supportedSampleRates();
@@ -148,4 +149,23 @@ void MainWindow::onCurrentTTSLocaleChanged(const QString &name)
     }
     ui->cboVoice->setCurrentIndex(0);
     m_tts->setVoice(voices.first());
+}
+
+void MainWindow::setTTsRepeat(bool repeat)
+{
+    m_ttsRepeat = repeat;
+}
+
+void MainWindow::onTTSStateChanged(QTextToSpeech::State state)
+{
+    if(     m_ttsRepeat &&
+            state == QTextToSpeech::Ready &&
+            m_presenter->isRunning() &&
+            m_presenter->isOverTimeout())
+    {
+        auto ttsText = m_presenter->ttsText().trimmed();
+        if(ttsText.size() == 0)
+            return;
+        m_tts->say(ttsText);
+    }
 }
