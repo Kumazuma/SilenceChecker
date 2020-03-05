@@ -26,5 +26,6 @@ protected slots:
     void onCurrentTTSLocaleChanged(const QString& name);
     void setTTsRepeat(bool);
     void onTTSStateChanged(QTextToSpeech::State);
+    void onTTSVoiceChanged(const QVoice &voice);
 };
 #endif // MAINWINDOW_H

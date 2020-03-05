@@ -20,11 +20,11 @@ WebSideView::WebSideView(std::shared_ptr<Presenter> presenter, QObject *parent) 
 
 WebSideView::~WebSideView()
 {
-    for(auto& item: m_clients)
+    auto items = m_clients;
+    for(auto& item: items)
     {
-        QWebSocket* socket = item.second;
-        socket->close();
-        socket->deleteLater();
+        item.second->close();
+        item.second->deleteLater();
     }
     m_clients.clear();
     m_server.close();
@@ -77,7 +77,7 @@ void WebSideView::onTick(int ms)
     QString jsonText = document.toJson();
     for(auto& item: m_clients)
     {
-        QWebSocket* socket = item.second;
+        auto& socket = item.second;
         socket->sendTextMessage(jsonText);
     }
 }
@@ -91,7 +91,7 @@ void WebSideView::onChangeRunningState(bool state)
     QString jsonText = document.toJson();
     for(auto& item: m_clients)
     {
-        QWebSocket* socket = item.second;
+        auto& socket = item.second;
         socket->sendTextMessage(jsonText);
     }
 }
@@ -105,7 +105,7 @@ void WebSideView::onOverTimeout(int count)
     QString jsonText = document.toJson();
     for(auto& item: m_clients)
     {
-        QWebSocket* socket = item.second;
+        auto& socket = item.second;
         socket->sendTextMessage(jsonText);
     }
 }
@@ -119,7 +119,7 @@ void WebSideView::onChangedTimeout(int ms)
     QString jsonText = document.toJson();
     for(auto& item: m_clients)
     {
-        QWebSocket* socket = item.second;
+        auto& socket = item.second;
         socket->sendTextMessage(jsonText);
     }
 }

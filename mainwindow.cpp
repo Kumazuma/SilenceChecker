@@ -89,6 +89,7 @@ MainWindow::MainWindow(std::shared_ptr<Presenter> presenter, QWidget *parent)
     connect(ui->txtTTSText, SIGNAL(textEdited(const QString&)), m_presenter.get(), SLOT(setTTS(const QString&)));
     connect(ui->chkRepeat, SIGNAL(clicked(bool)), this,SLOT(setTTsRepeat(bool)));
     connect(m_tts.get(), SIGNAL(stateChanged(QTextToSpeech::State)), this, SLOT(onTTSStateChanged(QTextToSpeech::State)));
+    connect(m_tts.get(), SIGNAL(voiceChanged(const QVoice &)), this, SLOT(onTTSVoiceChanged(const QVoice&)));
     //connect(ui->comboBox, SIGNAL(currentIndexChanged(int)),m_presenter.get(), SLOT(onInputDeviceChanged(int)));
 
 //    auto sampleRates = defaultDeviceInfo.supportedSampleRates();
@@ -160,6 +161,19 @@ void MainWindow::onTTSStateChanged(QTextToSpeech::State state)
 {
     if(     m_ttsRepeat &&
             state == QTextToSpeech::Ready &&
+            m_presenter->isRunning() &&
+            m_presenter->isOverTimeout())
+    {
+        auto ttsText = m_presenter->ttsText().trimmed();
+        if(ttsText.size() == 0)
+            return;
+        m_tts->say(ttsText);
+    }
+}
+
+void MainWindow::onTTSVoiceChanged(const QVoice &)
+{
+    if(     m_ttsRepeat &&
             m_presenter->isRunning() &&
             m_presenter->isOverTimeout())
     {
